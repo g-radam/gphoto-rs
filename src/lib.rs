@@ -9,6 +9,7 @@ pub use media::{Media,FileMedia};
 pub use port::{PortType,Port};
 pub use storage::{Storage,StorageType,FilesystemType,AccessType};
 pub use version::{LibraryVersion,libgphoto2_version};
+pub use video::{Video};
 
 #[macro_use]
 mod error;
@@ -19,6 +20,7 @@ mod media;
 mod port;
 mod storage;
 mod version;
+mod video;
 
 // internal
 mod handle;

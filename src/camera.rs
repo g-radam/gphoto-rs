@@ -164,6 +164,22 @@ impl Camera {
 }
 
 
+#[doc(hidden)]
+impl Handle<::gphoto2::Camera> for Camera {
+    unsafe fn as_ptr(&self) -> *const ::gphoto2::Camera {
+        self.camera
+    }
+}
+
+#[doc(hidden)]
+impl HandleMut<::gphoto2::Camera> for Camera {
+    unsafe fn as_mut_ptr(&mut self) -> *mut ::gphoto2::Camera {
+        self.camera
+    }
+}
+
+
+
 /// A file stored on a camera's storage.
 pub struct CameraFile {
     inner: ::gphoto2::CameraFilePath,
