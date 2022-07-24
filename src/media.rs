@@ -63,6 +63,33 @@ impl FileMedia {
             }
         }
     }
+
+    /// Creates an in-memory file that stores media.
+    ///
+    /// This function creates an empty FileMedia for in-memory data retrieval
+    ///
+    /// ## Errors
+    ///
+    /// This function returns an error if unable to create file media object
+    pub fn create_mem() -> ::Result<Self> {
+        let mut ptr = std::ptr::null_mut();
+
+        match unsafe { ::gphoto2::gp_file_new(&mut ptr) } {
+            ::gphoto2::GP_OK => Ok(FileMedia { file: ptr }),
+            err => Err(::error::from_libgphoto2(err)),
+        }
+    }
+
+    /// Returns media data as a array of bytes
+    pub fn as_bytes(&mut self) -> Vec<u8> {
+        let mut ptr: *const i8 = std::ptr::null();
+        let mut len: ::libc::c_ulong = 0;
+
+        unsafe {
+            ::gphoto2::gp_file_get_data_and_size(self.file, &mut ptr, &mut len);
+            std::slice::from_raw_parts(ptr as *const u8, len as usize).to_vec() 
+        }
+    }
 }
 
 impl Media for FileMedia {

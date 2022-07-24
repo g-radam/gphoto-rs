@@ -66,6 +66,18 @@ impl Camera {
         Ok(())
     }
 
+    /// Delete file on camera
+    pub fn delete_file(&mut self, context: &mut Context, source: &CameraFile) -> ::Result<()> {
+        try_unsafe!(
+            ::gphoto2::gp_camera_file_delete(
+                self.camera,
+                source.inner.folder.as_ptr(),
+                source.inner.name.as_ptr(),
+                context.as_mut_ptr())
+        );
+        Ok(())
+    }
+
     /// Returns information about the port the camera is connected to.
     pub fn port<'a>(&'a self) -> Port<'a> {
         let mut ptr = unsafe { mem::MaybeUninit::uninit().assume_init() };
