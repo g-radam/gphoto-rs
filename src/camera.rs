@@ -7,6 +7,7 @@ use ::abilities::Abilities;
 use ::media::Media;
 use ::port::Port;
 use ::storage::Storage;
+use ::widget::Widget;
 
 use ::handle::prelude::*;
 
@@ -105,6 +106,54 @@ impl Camera {
         let length = len as usize;
 
         Ok(unsafe { Vec::from_raw_parts(storage, length, length) })
+    }
+
+    /// Retrieves all available widgets in camera.
+    ///
+    /// Returns a `Vec` containing one `Widget` for each Widget on the device.
+    pub fn widget(&mut self, context: &mut Context) -> ::Result<Vec<Widget>> {
+        
+        /// Recursively accumulate all child of widget
+        pub unsafe fn get_all_children(widget_ptr: *mut ::gphoto2::CameraWidget, children_ptrs: &mut Vec::<*mut ::gphoto2::CameraWidget>)
+        {
+            // Get type
+            let mut ty = ::gphoto2::CameraWidgetType::GP_WIDGET_WINDOW; 
+            ::gphoto2::gp_widget_get_type(widget_ptr, &mut ty);
+
+            // Get children
+            let children_count = ::gphoto2::gp_widget_count_children(widget_ptr);
+            let is_window = ty == ::gphoto2::CameraWidgetType::GP_WIDGET_WINDOW;
+            let is_section = ty == ::gphoto2::CameraWidgetType::GP_WIDGET_SECTION;
+            if is_window || is_section {
+                for i in 0..children_count {
+                    let mut child_widget_ptr: *mut ::gphoto2::CameraWidget = std::ptr::null_mut();
+                    ::gphoto2::gp_widget_get_child(widget_ptr, i, &mut child_widget_ptr);
+                    get_all_children(child_widget_ptr, children_ptrs);
+                }
+            } else {
+                children_ptrs.push(widget_ptr);
+            }
+        }
+
+        // Extract all widgets
+        let mut window_ptr: *mut ::gphoto2::CameraWidget = std::ptr::null_mut();
+        let mut children_ptrs = vec![];
+        unsafe { ::gphoto2::gp_camera_get_config(self.camera, &mut window_ptr, context.as_mut_ptr()); }
+        unsafe { get_all_children(window_ptr, &mut children_ptrs); }
+        
+        // Generate widget array
+        let mut children: Vec<Widget> = vec![];
+        for ptr in children_ptrs {
+            unsafe {
+                ::gphoto2::gp_context_ref(context.as_mut_ptr());
+                ::gphoto2::gp_camera_ref(self.camera);
+                ::gphoto2::gp_widget_ref(window_ptr);
+                children.push(Widget::from_raw(context.as_mut_ptr(), self.camera, window_ptr, ptr)?);
+            }
+        }
+        
+        unsafe { ::gphoto2::gp_widget_unref(window_ptr); }
+        Ok(children)
     }
 
     /// Returns the camera's summary.
