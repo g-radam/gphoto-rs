@@ -63,7 +63,7 @@ pub struct Port<'a> {
 impl<'a> Port<'a> {
     /// Returns the type of the port.
     pub fn port_type(&self) -> PortType {
-        let mut port_type = unsafe { mem::uninitialized() };
+        let mut port_type = unsafe { mem::MaybeUninit::uninit().assume_init() };
 
         unsafe {
             assert_eq!(::gphoto2::GP_OK, ::gphoto2::gp_port_info_get_type(self.inner, &mut port_type));
@@ -82,7 +82,7 @@ impl<'a> Port<'a> {
 
     /// Returns the name of the port.
     pub fn name(&self) -> Cow<str> {
-        let mut name = unsafe { mem::uninitialized() };
+        let mut name = unsafe { mem::MaybeUninit::uninit().assume_init() };
 
         unsafe {
             assert_eq!(::gphoto2::GP_OK, ::gphoto2::gp_port_info_get_name(self.inner, &mut name));
@@ -92,7 +92,7 @@ impl<'a> Port<'a> {
 
     /// Returns the path of the port.
     pub fn path(&self) -> Cow<str> {
-        let mut path = unsafe { mem::uninitialized() };
+        let mut path = unsafe { mem::MaybeUninit::uninit().assume_init() };
 
         unsafe {
             assert_eq!(::gphoto2::GP_OK, ::gphoto2::gp_port_info_get_path(self.inner, &mut path));

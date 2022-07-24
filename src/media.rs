@@ -48,7 +48,7 @@ impl FileMedia {
             return Err(::error::from_libgphoto2(::gphoto2::GP_ERROR_FILE_EXISTS));
         }
 
-        let mut ptr = unsafe { mem::uninitialized() };
+        let mut ptr = unsafe { mem::MaybeUninit::uninit().assume_init() };
 
         match unsafe { ::gphoto2::gp_file_new_from_fd(&mut ptr, fd) } {
             ::gphoto2::GP_OK => {
